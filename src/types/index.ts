@@ -52,11 +52,13 @@ export type RootStackParamList = {
   RoutineEdit: { routineId?: number };
   StartWorkout: { routineId?: number };
   ExerciseHistory: { exerciseName: string };
+  ActiveWorkout: { routineId?: number; exercises?: string[] };
 };
 
 export type MainTabParamList = {
   Home: undefined;
-  Calendar: undefined;
-  Stats: undefined;
+  StartWorkout: undefined;
   Routines: undefined;
+  Stats: undefined;
+  Calendar: undefined;
 };

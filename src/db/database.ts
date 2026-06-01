@@ -322,3 +322,21 @@ export function getMuscleGroupStats(): { muscle_group: string; count: number }[]
     LIMIT 10`
   );
 }
+
+// 특정 운동의 가장 최근 세트 기록 조회 (이전 무게/횟수 불러오기용)
+export function getLastSetsForExercise(exerciseName: string): { set_number: number; weight: number | null; reps: number | null }[] {
+  const lastLog = db.getFirstSync<{ id: number }>(
+    `SELECT wl.id FROM workout_logs wl
+     JOIN workout_sets ws ON ws.workout_log_id = wl.id
+     WHERE ws.exercise_name = ?
+     ORDER BY wl.date DESC, wl.id DESC LIMIT 1`,
+    [exerciseName]
+  );
+  if (!lastLog) return [];
+  return db.getAllSync(
+    `SELECT set_number, weight, reps FROM workout_sets
+     WHERE workout_log_id = ? AND exercise_name = ?
+     ORDER BY set_number`,
+    [lastLog.id, exerciseName]
+  );
+}
