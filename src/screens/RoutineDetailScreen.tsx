@@ -119,14 +119,9 @@ export default function RoutineDetailScreen() {
 
       <TouchableOpacity
         style={styles.startBtn}
-        onPress={() =>
-          navigation.navigate('WorkoutEdit', {
-            date: new Date().toISOString().slice(0, 10),
-            routineId: routine.id,
-          })
-        }
+        onPress={() => navigation.navigate('ActiveWorkout', { routineId: routine.id })}
       >
-        <Ionicons name="play" size={20} color="#fff" />
+        <Ionicons name="play" size={20} color="#000000" />
         <Text style={styles.startBtnText}>운동 시작</Text>
       </TouchableOpacity>
     </View>
@@ -142,7 +137,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 56,
     paddingBottom: 12,
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.surface,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
@@ -151,41 +146,43 @@ const styles = StyleSheet.create({
   iconBtn: { padding: 6 },
   content: { padding: 20, paddingBottom: 100 },
   routineName: { fontSize: 26, fontWeight: '800', color: COLORS.text, marginBottom: 8 },
-  routineDesc: { fontSize: 15, color: COLORS.muted, marginBottom: 12, lineHeight: 22 },
+  routineDesc: { fontSize: 15, color: COLORS.textSecondary, marginBottom: 12, lineHeight: 22 },
   metaChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     alignSelf: 'flex-start',
-    backgroundColor: `${COLORS.primary}15`,
+    backgroundColor: COLORS.surface2,
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   metaText: { fontSize: 13, color: COLORS.primary, fontWeight: '600' },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
   emptyExercises: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.surface,
     borderRadius: 14,
     padding: 32,
     alignItems: 'center',
     gap: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   emptyText: { fontSize: 15, color: COLORS.text, fontWeight: '600' },
-  emptySubText: { fontSize: 13, color: COLORS.muted },
+  emptySubText: { fontSize: 13, color: COLORS.textSecondary },
   exerciseCard: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   orderBadge: {
     width: 32,
@@ -196,7 +193,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 2,
   },
-  orderText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  orderText: { fontSize: 14, fontWeight: '700', color: '#000000' },
   exerciseInfo: { flex: 1 },
   exerciseName: { fontSize: 16, fontWeight: '600', color: COLORS.text, marginBottom: 8 },
   targetRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
@@ -204,32 +201,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.surface2,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  targetLabel: { fontSize: 11, color: COLORS.muted },
+  targetLabel: { fontSize: 11, color: COLORS.textSecondary },
   targetValue: { fontSize: 13, fontWeight: '700', color: COLORS.text },
   startBtn: {
     position: 'absolute',
     bottom: 32,
     left: 24,
     right: 24,
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.primary,
     borderRadius: 14,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: COLORS.secondary,
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
   },
-  startBtnText: { color: '#fff', fontWeight: '700', fontSize: 17 },
+  startBtnText: { color: '#000000', fontWeight: '700', fontSize: 17 },
 });

@@ -77,7 +77,7 @@ export default function RoutinesScreen() {
         style={styles.fab}
         onPress={() => navigation.navigate('RoutineEdit', {})}
       >
-        <Ionicons name="add" size={28} color="#fff" />
+        <Ionicons name="add" size={28} color="#000000" />
       </TouchableOpacity>
     </View>
   );
@@ -87,33 +87,30 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   list: { padding: 16, paddingBottom: 80 },
   card: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.surface,
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   cardIcon: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: `${COLORS.primary}18`,
+    backgroundColor: COLORS.surface2,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardContent: { flex: 1 },
   cardTitle: { fontSize: 16, fontWeight: '600', color: COLORS.text },
-  cardDesc: { fontSize: 13, color: COLORS.muted, marginTop: 3 },
+  cardDesc: { fontSize: 13, color: COLORS.textSecondary, marginTop: 3 },
   empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: COLORS.text },
-  emptySubtitle: { fontSize: 14, color: COLORS.muted },
+  emptySubtitle: { fontSize: 14, color: COLORS.textSecondary },
   fab: {
     position: 'absolute',
     bottom: 24,
@@ -124,10 +121,5 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
   },
 });
