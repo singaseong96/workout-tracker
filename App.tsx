@@ -20,6 +20,7 @@ import WorkoutDetailScreen from './src/screens/WorkoutDetailScreen';
 import WorkoutEditScreen from './src/screens/WorkoutEditScreen';
 import RoutineDetailScreen from './src/screens/RoutineDetailScreen';
 import RoutineEditScreen from './src/screens/RoutineEditScreen';
+import ExerciseHistoryScreen from './src/screens/ExerciseHistoryScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -94,6 +95,11 @@ export default function App() {
               name="RoutineEdit"
               component={RoutineEditScreen}
               options={{ animation: 'slide_from_bottom', presentation: 'modal' }}
+            />
+            <Stack.Screen
+              name="ExerciseHistory"
+              component={ExerciseHistoryScreen}
+              options={{ animation: 'slide_from_right' }}
             />
           </Stack.Navigator>
         </NavigationContainer>
