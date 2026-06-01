@@ -1,9 +1,9 @@
 import 'react-native-gesture-handler';
-import React, { useEffect } from 'react';
-import { View } from 'react-native';
+import React, { useEffect, lazy, Suspense } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -13,28 +13,48 @@ import { StatusBar } from 'expo-status-bar';
 import { initDatabase } from './src/db/database';
 import { RootStackParamList, MainTabParamList } from './src/types';
 
-import HomeScreen from './src/screens/HomeScreen';
-import CalendarScreen from './src/screens/CalendarScreen';
-import StatsScreen from './src/screens/StatsScreen';
-import RoutinesScreen from './src/screens/RoutinesScreen';
-import WorkoutDetailScreen from './src/screens/WorkoutDetailScreen';
-import WorkoutEditScreen from './src/screens/WorkoutEditScreen';
-import RoutineDetailScreen from './src/screens/RoutineDetailScreen';
-import RoutineEditScreen from './src/screens/RoutineEditScreen';
-import ExerciseHistoryScreen from './src/screens/ExerciseHistoryScreen';
-import ActiveWorkoutScreen from './src/screens/ActiveWorkoutScreen';
+const HomeScreen = lazy(() => import('./src/screens/HomeScreen'));
+const CalendarScreen = lazy(() => import('./src/screens/CalendarScreen'));
+const StatsScreen = lazy(() => import('./src/screens/StatsScreen'));
+const RoutinesScreen = lazy(() => import('./src/screens/RoutinesScreen'));
+const WorkoutDetailScreen = lazy(() => import('./src/screens/WorkoutDetailScreen'));
+const WorkoutEditScreen = lazy(() => import('./src/screens/WorkoutEditScreen'));
+const RoutineDetailScreen = lazy(() => import('./src/screens/RoutineDetailScreen'));
+const RoutineEditScreen = lazy(() => import('./src/screens/RoutineEditScreen'));
+const ExerciseHistoryScreen = lazy(() => import('./src/screens/ExerciseHistoryScreen'));
+const ActiveWorkoutScreen = lazy(() => import('./src/screens/ActiveWorkoutScreen'));
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-// 운동 시작 탭을 위한 더미 화면 (탭 탭 시 ActiveWorkout으로 navigate)
+const LazyFallback = (
+  <View style={{ flex: 1, backgroundColor: '#0F0F0F', justifyContent: 'center', alignItems: 'center' }}>
+    <ActivityIndicator color="#FFD600" size="large" />
+  </View>
+);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function withSuspense(
+  Component: React.LazyExoticComponent<React.ComponentType<any>>,
+): React.ComponentType<any> {
+  return function SuspenseWrapper(props: Record<string, unknown>) {
+    return <Suspense fallback={LazyFallback}><Component {...props} /></Suspense>;
+  };
+}
+
+const HomeScreenLazy = withSuspense(HomeScreen);
+const CalendarScreenLazy = withSuspense(CalendarScreen);
+const StatsScreenLazy = withSuspense(StatsScreen);
+const RoutinesScreenLazy = withSuspense(RoutinesScreen);
+const WorkoutDetailScreenLazy = withSuspense(WorkoutDetailScreen);
+const WorkoutEditScreenLazy = withSuspense(WorkoutEditScreen);
+const RoutineDetailScreenLazy = withSuspense(RoutineDetailScreen);
+const RoutineEditScreenLazy = withSuspense(RoutineEditScreen);
+const ExerciseHistoryScreenLazy = withSuspense(ExerciseHistoryScreen);
+const ActiveWorkoutScreenLazy = withSuspense(ActiveWorkoutScreen);
+
+// 운동 시작 탭을 위한 더미 화면 (tabPress listener에서 ActiveWorkout으로 navigate)
 function StartWorkoutTab() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
-  useEffect(() => {
-    navigation.navigate('ActiveWorkout', {});
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   return <View style={{ flex: 1, backgroundColor: '#0F0F0F' }} />;
 }
 
@@ -56,7 +76,7 @@ function MainTabs() {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeScreenLazy}
         options={{
           tabBarLabel: '홈',
           tabBarIcon: ({ color, focused }) => (
@@ -80,7 +100,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Routines"
-        component={RoutinesScreen}
+        component={RoutinesScreenLazy}
         options={{
           tabBarLabel: '루틴',
           tabBarIcon: ({ color, focused }) => (
@@ -90,7 +110,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Stats"
-        component={StatsScreen}
+        component={StatsScreenLazy}
         options={{
           tabBarLabel: '통계',
           tabBarIcon: ({ color, focused }) => (
@@ -100,7 +120,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Calendar"
-        component={CalendarScreen}
+        component={CalendarScreenLazy}
         options={{
           tabBarLabel: '기록',
           tabBarIcon: ({ color, focused }) => (
@@ -126,32 +146,32 @@ export default function App() {
             <Stack.Screen name="MainTabs" component={MainTabs} />
             <Stack.Screen
               name="WorkoutDetail"
-              component={WorkoutDetailScreen}
+              component={WorkoutDetailScreenLazy}
               options={{ presentation: 'modal' }}
             />
             <Stack.Screen
               name="WorkoutEdit"
-              component={WorkoutEditScreen}
+              component={WorkoutEditScreenLazy}
               options={{ presentation: 'modal' }}
             />
             <Stack.Screen
               name="RoutineDetail"
-              component={RoutineDetailScreen}
+              component={RoutineDetailScreenLazy}
               options={{ presentation: 'modal' }}
             />
             <Stack.Screen
               name="RoutineEdit"
-              component={RoutineEditScreen}
+              component={RoutineEditScreenLazy}
               options={{ presentation: 'modal' }}
             />
             <Stack.Screen
               name="ActiveWorkout"
-              component={ActiveWorkoutScreen}
+              component={ActiveWorkoutScreenLazy}
               options={{ presentation: 'fullScreenModal' }}
             />
             <Stack.Screen
               name="ExerciseHistory"
-              component={ExerciseHistoryScreen}
+              component={ExerciseHistoryScreenLazy}
             />
           </Stack.Navigator>
         </NavigationContainer>
