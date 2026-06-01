@@ -1,11 +1,11 @@
-export interface Exercise {
+export type Exercise = {
   id: number;
   name: string;
   category: string;
   muscle_group: string;
 }
 
-export interface WorkoutSet {
+export type WorkoutSet = {
   id: number;
   workout_log_id: number;
   exercise_id: number;
@@ -17,7 +17,7 @@ export interface WorkoutSet {
   notes: string | null;
 }
 
-export interface WorkoutLog {
+export type WorkoutLog = {
   id: number;
   date: string;
   title: string;
@@ -26,14 +26,14 @@ export interface WorkoutLog {
   sets?: WorkoutSet[];
 }
 
-export interface Routine {
+export type Routine = {
   id: number;
   name: string;
   description: string | null;
   exercises?: RoutineExercise[];
 }
 
-export interface RoutineExercise {
+export type RoutineExercise = {
   id: number;
   routine_id: number;
   exercise_id: number;
@@ -47,10 +47,11 @@ export interface RoutineExercise {
 export type RootStackParamList = {
   MainTabs: undefined;
   WorkoutDetail: { logId: number };
-  WorkoutEdit: { logId?: number; date?: string };
+  WorkoutEdit: { logId?: number; date?: string; routineId?: number };
   RoutineDetail: { routineId: number };
   RoutineEdit: { routineId?: number };
   StartWorkout: { routineId?: number };
+  ExerciseHistory: { exerciseName: string };
 };
 
 export type MainTabParamList = {

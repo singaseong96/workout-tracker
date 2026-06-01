@@ -12,12 +12,14 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import {
   getWorkoutLogWithSets,
+  getRoutineWithExercises,
   createWorkoutLog,
   updateWorkoutLog,
   addWorkoutSet,
@@ -30,12 +32,13 @@ import { COLORS } from '../utils/colors';
 type Route = RouteProp<RootStackParamList, 'WorkoutEdit'>;
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
-interface SetEntry {
+type SetEntry = {
   weight: string;
   reps: string;
+  done: boolean;
 }
 
-interface ExerciseEntry {
+type ExerciseEntry = {
   name: string;
   sets: SetEntry[];
 }
@@ -44,6 +47,7 @@ export default function WorkoutEditScreen() {
   const route = useRoute<Route>();
   const navigation = useNavigation<Nav>();
   const logId = route.params?.logId;
+  const routineId = route.params?.routineId;
   const initialDate = route.params?.date ?? format(new Date(), 'yyyy-MM-dd');
 
   const [title, setTitle] = useState('');
@@ -55,31 +59,58 @@ export default function WorkoutEditScreen() {
   const [searchModal, setSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Exercise[]>([]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-  useCallback(() => {
-    if (initialized) return;
-    if (logId) {
-      const log = getWorkoutLogWithSets(logId);
-      if (log) {
-        setTitle(log.title);
-        setDate(log.date);
-        setNotes(log.notes ?? '');
-        setDuration(String(log.duration_minutes ?? ''));
-        const grouped: Record<string, SetEntry[]> = {};
-        for (const s of log.sets ?? []) {
-          if (!grouped[s.exercise_name]) grouped[s.exercise_name] = [];
-          grouped[s.exercise_name].push({
-            weight: String(s.weight ?? ''),
-            reps: String(s.reps ?? ''),
-          });
+  useFocusEffect(
+    useCallback(() => {
+      if (initialized) return;
+      if (logId) {
+        const log = getWorkoutLogWithSets(logId);
+        if (log) {
+          setTitle(log.title);
+          setDate(log.date);
+          setNotes(log.notes ?? '');
+          setDuration(String(log.duration_minutes ?? ''));
+          const grouped: Record<string, SetEntry[]> = {};
+          for (const s of log.sets ?? []) {
+            if (!grouped[s.exercise_name]) grouped[s.exercise_name] = [];
+            grouped[s.exercise_name].push({
+              weight: String(s.weight ?? ''),
+              reps: String(s.reps ?? ''),
+              done: false,
+            });
+          }
+          setExercises(Object.entries(grouped).map(([name, sets]) => ({ name, sets })));
         }
-        setExercises(Object.entries(grouped).map(([name, sets]) => ({ name, sets })));
+      } else if (routineId) {
+        const routine = getRoutineWithExercises(routineId);
+        if (routine) {
+          setTitle(routine.name);
+          const exEntries: ExerciseEntry[] = (routine.exercises ?? []).map((ex) => ({
+            name: ex.exercise_name,
+            sets: Array.from({ length: ex.target_sets }, () => ({
+              weight: ex.target_weight != null ? String(ex.target_weight) : '',
+              reps: ex.target_reps != null ? String(ex.target_reps) : '',
+              done: false,
+            })),
+          }));
+          setExercises(exEntries);
+        } else {
+          setTitle('오늘의 운동');
+        }
+      } else {
+        setTitle('오늘의 운동');
       }
-    } else {
-      setTitle('오늘의 운동');
+      setInitialized(true);
+    }, [logId, routineId, initialized])
+  );
+
+  function handleDateChange(_event: DateTimePickerEvent, selected?: Date) {
+    setShowDatePicker(false);
+    if (selected) {
+      setDate(format(selected, 'yyyy-MM-dd'));
     }
-    setInitialized(true);
-  }, [logId, initialized])();
+  }
 
   function handleSearchExercise(q: string) {
     setSearchQuery(q);
@@ -87,7 +118,7 @@ export default function WorkoutEditScreen() {
   }
 
   function addExercise(name: string) {
-    setExercises((prev) => [...prev, { name, sets: [{ weight: '', reps: '' }] }]);
+    setExercises((prev) => [...prev, { name, sets: [{ weight: '', reps: '', done: false }] }]);
     setSearchModal(false);
     setSearchQuery('');
   }
@@ -95,7 +126,7 @@ export default function WorkoutEditScreen() {
   function addSet(exIdx: number) {
     setExercises((prev) =>
       prev.map((ex, i) =>
-        i === exIdx ? { ...ex, sets: [...ex.sets, { weight: '', reps: '' }] } : ex
+        i === exIdx ? { ...ex, sets: [...ex.sets, { weight: '', reps: '', done: false }] } : ex
       )
     );
   }
@@ -129,7 +160,22 @@ export default function WorkoutEditScreen() {
     );
   }
 
-  async function handleSave() {
+  function toggleDone(exIdx: number, setIdx: number) {
+    setExercises((prev) =>
+      prev.map((ex, i) =>
+        i !== exIdx
+          ? ex
+          : {
+              ...ex,
+              sets: ex.sets.map((s, si) =>
+                si !== setIdx ? s : { ...s, done: !s.done }
+              ),
+            }
+      )
+    );
+  }
+
+  function handleSave() {
     if (!title.trim()) {
       Alert.alert('오류', '운동 제목을 입력해주세요.');
       return;
@@ -158,8 +204,15 @@ export default function WorkoutEditScreen() {
       });
     }
 
-    navigation.goBack();
+    Alert.alert('저장 완료', '운동이 저장되었습니다.', [
+      { text: '확인', onPress: () => navigation.goBack() },
+    ]);
   }
+
+  const dateValue = (() => {
+    const parsed = new Date(date + 'T00:00:00');
+    return isNaN(parsed.getTime()) ? new Date() : parsed;
+  })();
 
   return (
     <KeyboardAvoidingView
@@ -188,13 +241,21 @@ export default function WorkoutEditScreen() {
         <View style={styles.row}>
           <View style={styles.field}>
             <Text style={styles.label}>날짜</Text>
-            <TextInput
+            <TouchableOpacity
               style={styles.input}
-              value={date}
-              onChangeText={setDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={COLORS.muted}
-            />
+              onPress={() => setShowDatePicker(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={{ fontSize: 15, color: COLORS.text }}>{date}</Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={dateValue}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleDateChange}
+              />
+            )}
           </View>
           <View style={styles.field}>
             <Text style={styles.label}>시간 (분)</Text>
@@ -231,6 +292,7 @@ export default function WorkoutEditScreen() {
             </View>
 
             <View style={styles.setHeader}>
+              <View style={{ width: 28 }} />
               <Text style={[styles.setCol, styles.setLabel]}>세트</Text>
               <Text style={[styles.setColWide, styles.setLabel]}>무게 (kg)</Text>
               <Text style={[styles.setColWide, styles.setLabel]}>횟수</Text>
@@ -238,7 +300,23 @@ export default function WorkoutEditScreen() {
             </View>
 
             {ex.sets.map((s, setIdx) => (
-              <View key={setIdx} style={styles.setRow}>
+              <View
+                key={setIdx}
+                style={[
+                  styles.setRow,
+                  s.done && { backgroundColor: `${COLORS.success}22`, borderRadius: 8 },
+                ]}
+              >
+                <TouchableOpacity
+                  onPress={() => toggleDone(exIdx, setIdx)}
+                  style={{ width: 28, alignItems: 'center' }}
+                >
+                  <Ionicons
+                    name={s.done ? 'checkmark-circle' : 'ellipse-outline'}
+                    size={22}
+                    color={s.done ? COLORS.success : COLORS.muted}
+                  />
+                </TouchableOpacity>
                 <Text style={styles.setCol}>{setIdx + 1}</Text>
                 <TextInput
                   style={[styles.setInput, styles.setColWide]}
@@ -389,7 +467,7 @@ const styles = StyleSheet.create({
   exerciseName: { fontSize: 16, fontWeight: '600', color: COLORS.text },
   setHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
   setLabel: { fontSize: 12, color: COLORS.muted, fontWeight: '600', textAlign: 'center' },
-  setRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  setRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, paddingVertical: 2 },
   setCol: { width: 36, textAlign: 'center', fontSize: 14, color: COLORS.text },
   setColWide: { flex: 1, textAlign: 'center' },
   setInput: {

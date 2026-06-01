@@ -130,7 +130,9 @@ export default function RoutineEditScreen() {
       addRoutineExercise(targetId, ex.name, i, sets, reps, weight);
     }
 
-    navigation.goBack();
+    Alert.alert('저장 완료', '루틴이 저장되었습니다.', [
+      { text: '확인', onPress: () => navigation.goBack() },
+    ]);
   }
 
   return (

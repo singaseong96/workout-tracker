@@ -120,7 +120,10 @@ export default function RoutineDetailScreen() {
       <TouchableOpacity
         style={styles.startBtn}
         onPress={() =>
-          navigation.navigate('WorkoutEdit', { date: new Date().toISOString().slice(0, 10) })
+          navigation.navigate('WorkoutEdit', {
+            date: new Date().toISOString().slice(0, 10),
+            routineId: routine.id,
+          })
         }
       >
         <Ionicons name="play" size={20} color="#fff" />

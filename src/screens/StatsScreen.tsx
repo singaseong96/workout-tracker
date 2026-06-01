@@ -4,12 +4,17 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { CartesianChart, Bar } from 'victory-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { BarChart } from 'react-native-chart-kit';
 import { getWorkoutLogs, getRecentVolume, getMuscleGroupStats } from '../db/database';
+import { RootStackParamList } from '../types';
 import { COLORS } from '../utils/colors';
+
+type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -52,6 +57,7 @@ function formatBarLabel(dateStr: string): string {
 }
 
 export default function StatsScreen() {
+  const navigation = useNavigation<Nav>();
   const [totalCount, setTotalCount] = useState(0);
   const [streak, setStreak] = useState(0);
   const [monthCount, setMonthCount] = useState(0);
@@ -102,28 +108,27 @@ export default function StatsScreen() {
           </View>
         ) : (
           <View style={styles.chartCard}>
-            <CartesianChart
-              data={chartData}
-              xKey="label"
-              yKeys={['volume']}
-              axisOptions={{
-                font: null,
-                labelColor: COLORS.muted,
-                lineColor: COLORS.border,
+            <BarChart
+              data={{
+                labels: chartData.map((d) => d.label),
+                datasets: [{ data: chartData.map((d) => d.volume || 0) }],
               }}
-              padding={{ left: 10, right: 10, top: 10, bottom: 10 }}
-              domainPadding={{ left: 20, right: 20, top: 20 }}
-            >
-              {({ points, chartBounds }) => (
-                <Bar
-                  points={points.volume}
-                  chartBounds={chartBounds}
-                  color={COLORS.primary}
-                  roundedCorners={{ topLeft: 4, topRight: 4 }}
-                  innerPadding={0.3}
-                />
-              )}
-            </CartesianChart>
+              width={SCREEN_WIDTH - 64}
+              height={200}
+              yAxisLabel=""
+              yAxisSuffix=""
+              chartConfig={{
+                backgroundColor: COLORS.card,
+                backgroundGradientFrom: COLORS.card,
+                backgroundGradientTo: COLORS.card,
+                decimalPlaces: 0,
+                color: () => COLORS.primary,
+                labelColor: () => COLORS.muted,
+                barPercentage: 0.6,
+              }}
+              style={{ borderRadius: 8 }}
+              showValuesOnTopOfBars
+            />
             <Text style={styles.chartCaption}>볼륨 = 무게(kg) × 횟수 합계</Text>
           </View>
         )}
@@ -142,7 +147,12 @@ export default function StatsScreen() {
               const maxCount = muscleData[0]?.count ?? 1;
               const barWidth = (item.count / maxCount) * 100;
               return (
-                <View key={`${item.muscle_group}-${index}`} style={styles.exerciseRow}>
+                <TouchableOpacity
+                  key={`${item.muscle_group}-${index}`}
+                  style={styles.exerciseRow}
+                  onPress={() => navigation.navigate('ExerciseHistory', { exerciseName: item.muscle_group })}
+                  activeOpacity={0.7}
+                >
                   <View style={styles.rankBadge}>
                     <Text style={styles.rankText}>{index + 1}</Text>
                   </View>
@@ -157,7 +167,7 @@ export default function StatsScreen() {
                       <View style={[styles.progressFill, { width: `${barWidth}%` }]} />
                     </View>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })}
           </View>
@@ -257,5 +267,3 @@ const styles = StyleSheet.create({
   },
 });
 
-// Suppress unused variable warning for SCREEN_WIDTH — referenced by chart sizing
-void SCREEN_WIDTH;
